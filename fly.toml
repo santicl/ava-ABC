@@ -1,4 +1,4 @@
-app = "ghl-check-palmarito"
+app = "ghl-check-palmarito-hotel"
 primary_region = "gru"
 
 # Configuración de construcción (elige entre Dockerfile o Buildpacks)
