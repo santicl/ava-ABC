@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 function getDateCustomValues(obj) {
-  return obj.name.replace('disponible-palmarito-', '');
+  return obj.name.replace('disponible-palmarito-hotel', '');
 }
 
 const getCustomFields = async (req, res, next) => {
@@ -28,7 +28,7 @@ const getCustomFields = async (req, res, next) => {
             const dateCustom = getDateCustomValues(custom)
             if (fecha === dateCustom) {
                 req.body.placesAvailable = parseInt(custom.value)
-            } else if(custom.name === 'cupos-diarios-palmarito') {
+            } else if(custom.name === 'cupos-diarios-palmarito-hotel') {
                 req.body.placesAvailable = parseInt(custom.value)
             }
         });

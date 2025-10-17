@@ -22,18 +22,16 @@ const validateDateMatches = async (req, res, next) => {
 
     try {
         const submissionsData = submissions || [];
-        console.log(submissionsData, 'Cantidad de Registros')
+        console.log(submissionsData.length, 'Cantidad de Registros')
 
         let totalAdditionalPeople = 0;
 
     submissionsData.forEach((submission) => {
       const submissionDate = submission["VxRYImDnl8ikmYom7hfz"];
 
-      const personasAdults = Number(submission["TI6rh5uOnAHZEI38UU7e"] || 0);
-      const personasChilds = Number(submission["2kbs6r74qCBAkvHOQDIv"] || 0);
-      const personasInfants = Number(submission["bMeS4BNHinzH1R2RYbRm"] || 0);
+      const personasAdults = Number(submission["bMeS4BNHinzH1R2RYbRm"] || 0);
 
-      let total = personasAdults + personasChilds + personasInfants;
+      let total = personasAdults
 
       // Si no se registró nadie, asumimos que mínimo es 1 persona
       if (total === 0) {
