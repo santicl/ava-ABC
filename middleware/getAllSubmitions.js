@@ -38,7 +38,7 @@ const getSubmissions = async (formId, limit = 100) => {
 
 const getFormAllByIdSubmissions = async (req, res, next) => {
     const formId = process.env.FORM_ID; // Cocolux
-    //const formSecondId = process.env.FORM_SECOND_ID; // Premium
+    const formSecondId = process.env.FORM_SECOND_ID; // Premium
     //const formThreeId = process.env.FORM_THREE_ID; // Traditional
     const limit = 100;
     
@@ -51,12 +51,13 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
 
     try {
         // Obtener todos los submissions de ambos formularios
-        const [form1Submissions] = await Promise.all([
+        const [form1Submissions, form2Submissions] = await Promise.all([
             getSubmissions(formId, limit),
+            getSubmissions(formSecondId, limit),
         ]);
 
         // Combinar todas las submissions
-        req.body.submissions = [...form1Submissions];
+        req.body.submissions = [...form1Submissions, form2Submissions];
         console.log(req.body.submissions, "SUBMITIONS")
         next();
 

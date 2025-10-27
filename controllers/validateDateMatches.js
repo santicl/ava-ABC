@@ -21,6 +21,16 @@ const validateDateMatches = async (req, res, next) => {
       msg: "Hay Cupos Suficientes",
       ava: true,
       avaNumber: numberAvailable,
+      res: "Prueba de que pasa por aqui"
+    });
+  }
+
+  if (numberAvailable === 0) {
+    return res.json({
+      msg: "No hay Cupos Suficientes",
+      ava: false,
+      avaNumber: numberAvailable,
+      res: "Prueba de que pasa por aqui: numberAvailable === 0"
     });
   }
 
@@ -57,6 +67,7 @@ const validateDateMatches = async (req, res, next) => {
           msg: `La habitación "${roomName}" ya está reservada para la fecha ${fecha}`,
           ava: false,
           avaNumber: 0,
+          res: "Prueba de que pasa por aqui: La habitación roomName"
         });
       }
     }
@@ -71,6 +82,7 @@ const validateDateMatches = async (req, res, next) => {
         msg: "No hay Cupos Suficientes",
         ava: false,
         avaNumber,
+        res: "Prueba de que pasa por aqui: numberPerson > availablePlaces"
       });
     }
 
@@ -79,6 +91,7 @@ const validateDateMatches = async (req, res, next) => {
         msg: "Hay Cupos Suficientes",
         ava: true,
         avaNumber,
+        res: "Prueba de que pasa por aqui: availablePlaces > 0"
       });
     }
 
