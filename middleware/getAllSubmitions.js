@@ -42,6 +42,7 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
     const formTwins2 = process.env.TWINS_2
     const formCabana1 = process.env.CABANA
     const formCabana2 = process.env.CABANA_2
+    const dobleStandard = process.env.DOBLE_STANDARD
     //const formThreeId = process.env.FORM_THREE_ID; // Traditional
     const limit = 100;
     
@@ -54,12 +55,13 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
 
     try {
         // Obtener todos los submissions de ambos formularios
-        const [formTwins1Submissions, formHabFamiliarSubmissions, formTwins2Submisions, formCabana1Submisions, formCabana2Submisions] = await Promise.all([
+        const [formTwins1Submissions, formHabFamiliarSubmissions, formTwins2Submisions, formCabana1Submisions, formCabana2Submisions, formDobleStandardSubmisions] = await Promise.all([
             getSubmissions(formTwins1, limit),
             getSubmissions(formHabFamiliar, limit),
             getSubmissions(formTwins2, limit),
             getSubmissions(formCabana1, limit),
             getSubmissions(formCabana2, limit),
+            getSubmissions(dobleStandard, limit),
         ]);
 
         // Combinar todas las submissions
@@ -68,7 +70,8 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
             ...formHabFamiliarSubmissions, 
             ...formTwins2Submisions, 
             ...formCabana1Submisions, 
-            ...formCabana2Submisions
+            ...formCabana2Submisions,
+            ...formDobleStandardSubmisions
         ];
         console.log(req.body.submissions, "SUBMITIONS")
         next();
