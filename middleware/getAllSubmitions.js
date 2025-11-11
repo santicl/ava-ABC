@@ -37,13 +37,16 @@ const getSubmissions = async (formId, limit = 100) => {
 };
 
 const getFormAllByIdSubmissions = async (req, res, next) => {
-    const formId = process.env.FORM_ID; // Cocolux
-    const formSecondId = process.env.FORM_SECOND_ID; // Premium
+    const formHabFamiliar = process.env.HAB_FAMILIAR
+    const formTwins1 = process.env.TWINS_1
+    const formTwins2 = process.env.TWINS_2
+    const formCabana1 = process.env.CABANA
+    const formCabana2 = process.env.CABANA_2
     //const formThreeId = process.env.FORM_THREE_ID; // Traditional
     const limit = 100;
     
 
-    if (!formId) {
+    if (!formHabFamiliar) {
         return res.status(400).json({ error: 'FORM_ID son requeridos en las variables de entorno' });
     }
 
@@ -51,13 +54,22 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
 
     try {
         // Obtener todos los submissions de ambos formularios
-        const [form1Submissions, form2Submissions] = await Promise.all([
-            getSubmissions(formId, limit),
-            getSubmissions(formSecondId, limit),
+        const [formTwins1Submissions, formHabFamiliarSubmissions, formTwins2Submisions, formCabana1Submisions, formCabana2Submisions] = await Promise.all([
+            getSubmissions(formTwins1, limit),
+            getSubmissions(formHabFamiliar, limit),
+            getSubmissions(formTwins2, limit),
+            getSubmissions(formCabana1, limit),
+            getSubmissions(formCabana2, limit),
         ]);
 
         // Combinar todas las submissions
-        req.body.submissions = [...form1Submissions, form2Submissions];
+        req.body.submissions = [
+            ...formTwins1Submissions, 
+            ...formHabFamiliarSubmissions, 
+            ...formTwins2Submisions, 
+            ...formCabana1Submisions, 
+            ...formCabana2Submisions
+        ];
         console.log(req.body.submissions, "SUBMITIONS")
         next();
 

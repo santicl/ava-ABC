@@ -28,7 +28,7 @@ function extractRoomType(name) {
  * Middleware que obtiene los valores de disponibilidad desde GoHighLevel
  */
 const getCustomFieldsSecond = async (req, res, next) => {
-  const { fecha, roomType } = req.body; // Ejemplo: fecha="2025-10-29", roomType="cabana-1"
+  const { dateStart, dateEnd, roomType } = req.body; // Ejemplo: dateStart="2025-11-12", dateEnd="2025-11-19" roomType="cabana-1"
   const API_CUSTOM_FIELDS = "https://rest.gohighlevel.com/v1/custom-values";
 
   try {
@@ -66,7 +66,7 @@ const getCustomFieldsSecond = async (req, res, next) => {
     }
 
     // Asignar disponibilidad específica si se pide
-    if (roomType && fecha) {
+    if (roomType && dateStart && dateEnd) {
       const available =
         availabilityMap?.[roomType]?.[fecha] ??
         availabilityMap?.["general"]?.dailyRoomLimit ??
