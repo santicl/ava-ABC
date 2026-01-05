@@ -1,7 +1,7 @@
 const validateAvailabilityByDateAndHour = async (req, res) => {
-  const { dateStart, submissions, customValues, numberPerson = 1 } = req.body;
+  const { fecha, submissions, customValues, numberPerson = 1 } = req.body;
 
-  if (!dateStart) {
+  if (!fecha) {
     return res.status(400).json({ error: "La fecha es requerida" });
   }
 
@@ -82,7 +82,7 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     const hourKey = HOUR_KEY_MAP[normalizedHour];
 
     if (
-      submissionDate === dateStart &&
+      submissionDate === fecha &&
       hourKey &&
       reservedByHour[hourKey] !== undefined
     ) {
@@ -99,7 +99,7 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     if (available >= numberPerson) {
       return res.json({
         ava: true,
-        date: dateStart,
+        date: fecha,
         horario: hour.label,
         horarioKey: hour.key,
         capacidad: capacity,
@@ -113,7 +113,7 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
   return res.json({
     ava: false,
     msg: "No hay cupos suficientes",
-    date: dateStart,
+    date: fecha,
     detalleHorarios: HOURS.map(h => {
       const cap = capacityMap[h.key] || 0;
       const resv = reservedByHour[h.key];
