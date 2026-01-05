@@ -1,61 +1,51 @@
 const validateDateMatchesSecond = async (req, res, next) => {
-  const { dateStart, dateEnd, submissions, numberPerson, availabilityMap, roomName } = req.body; 
+  const { dateStart, submissions, numberPerson, hourOnBoarding } = req.body;
   // Ejemplo: dateStart="2025-11-12", dateEnd="2025-11-19" roomName="cabana-1"
+  console.log("Los datos son: ", req.body)
 
-  if (!dateStart || !dateEnd) {
+  if (!dateStart) {
     return res.status(400).json({ error: "Las fechas de inicio y fin son requeridas" });
   }
 
-  if (!roomName) {
-    return res.status(400).json({ error: "El nombre de la habitación es requerido" });
+  if (!numberPerson) {
+    return res.status(400).json({ error: "El numero de personas es requerido" });
   }
 
-  const roomAliasMap = {
-    "doble-standard-2": "standard-doble",
-    "cabana-1": "cabana-1",
-    "cabana-2": "cabana-2",
-    "hab-familiar": "hab-familiar",
-    "twins-1": "twins-1",
-    "twins-2": "twins-2"
-  };
-
-  function normalizeRoomName(roomName) {
-    if (!roomName) return '';
-    return roomName
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/#/g, "")
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^([a-z0-9-]*?[0-9]).*$/, '$1')
-      .replace(/-+/g, '-')
-      .replace(/-$/, '');
-  }
-
-  const normalizedRoom = normalizeRoomName(roomName);
-  const aliasKey = roomAliasMap[normalizedRoom] || normalizedRoom;
-
-  // 🔹 Generar rango de fechas entre dateStart y dateEnd
-  const getDateRange = (start, end) => {
-    const range = [];
-    let current = new Date(start);
-    const endDate = new Date(end);
-    while (current <= endDate) {
-      range.push(current.toISOString().split("T")[0]); // formato YYYY-MM-DD
-      current.setDate(current.getDate() + 1);
-    }
-    return range;
-  };
-
-  const dateRange = getDateRange(dateStart, dateEnd);
-
-  if (!availabilityMap) {
-    return res.status(400).json({ error: "El mapa de disponibilidad es requerido" });
+    if (!hourOnBoarding) {
+    return res.status(400).json({ error: "La hora de embarque es requerido" });
   }
 
   try {
-    const noAvailableDates = []; // 🔸 Fechas sin disponibilidad
+    const submissionsData = submissions || [];
+    console.log(submissionsData.length, "Cantidad de Registros");
+    let totalAdditionalPeople = 0;
+    let totalHourOnBoardingOfBookings = 0;
+
+    submissionsData.forEach((submission) => {
+      const hourOnBoardingMain = submission['JLIXjQ69qYsxnDpwKHcP'];
+      const dateStartSubmission = submission['VxRYImDnl8ikmYom7hfz'];
+      const personasAdults = Number(submission["aFT17gx5ceNFsSriw5Sd"] || 0);
+      const total = personasAdults || 1;
+
+            // 🔹 Solo acumular personas si coinciden fecha
+      if (dateStartSubmission === dateStart) {
+        totalAdditionalPeople += total;
+
+        // Despues de que coincida en la fecha, en los customValues vienen nombres como los siguientes: disponibilidad-horario830 que corresponde a 8: 30 AM, disponibilidad-horario10 que corresponde a las 10: 00 AM y disponibilidad-horario11 que correspinde a las 11: 00 AM.
+        // Cada customValue vendra con un valor numerico.
+        // Primero se debe comprobar los que coincidad con el de 8: 30 AM que seria: disponibilidad-horario830.
+        // Se debe sumar totalHourOnBoardingOfBookings con este numero: personasAdults, cada vez que coincida.
+        // Se debe verificar que totalHourOnBoardingOfBookings no sea mayor al valor del customValue; disponibilidad-horario830.
+        // En caso de que sea mayor eso indica que que ya no hay cupos para las (8: 30 AM).
+        // Por ende tendria que ir al otro horario: disponibilidad-horario10 (10: 00 AM) y asi sucesivamente con todos.
+        // En caso de que todos esten llenos, deberias responder:       return res.json({
+       // msg: `No hay cupos suficientes`,
+        // ava: false,
+        // fechasNoDisponibles: noAvailableDates,
+        // });
+      }
+
+    })
 
     // 🔹 Recorremos cada día del rango solicitado
     for (const fecha of dateRange) {
@@ -69,12 +59,12 @@ const validateDateMatchesSecond = async (req, res, next) => {
       let totalAdditionalPeople = 0;
 
       submissions?.forEach((submission) => {
-        const nameRoomSubmission = submission['NsBS7YYDop4ZecfJkXbi'];
+        //const nameRoomSubmission = submission['NsBS7YYDop4ZecfJkXbi'];
         const dateStartSubmission = submission['VxRYImDnl8ikmYom7hfz'];
-        const dateEndSubmission = submission['Ff3ikC72CFS1SiDdMjpd'];
-        const personasAdults = Number(submission["bMeS4BNHinzH1R2RYbRm"] || 0);
+        //const dateEndSubmission = submission['Ff3ikC72CFS1SiDdMjpd'];
+        const personasAdults = Number(submission["aFT17gx5ceNFsSriw5Sd"] || 0);
         const total = personasAdults || 1;
-        const normalizedSubmissionRoom = normalizeRoomName(nameRoomSubmission);
+        //const normalizedSubmissionRoom = normalizeRoomName(nameRoomSubmission);
 
         // 🔹 Verificar solapamiento de fechas
         const overlap =

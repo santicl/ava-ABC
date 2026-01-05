@@ -8,14 +8,6 @@ const validateDateMatches = async (req, res, next) => {
     return res.status(400).json({ error: "La fecha es requerida" });
   }
 
-  const roomsHotelName = {
-    "Doble Standard 2 PAX": 2,
-    "Twins #1 - 3 PAX": 3,
-    "Twins #2 - 4 PAX": 4,
-    "Cabaña #1 - 2 PAX": 2,
-    "Cabaña #2 - 2 PAX": 2,
-  };
-
   if ((!submissions || submissions.length === 0) && numberAvailable > 0) {
     return res.json({
       msg: "Hay Cupos Suficientes",
@@ -42,35 +34,15 @@ const validateDateMatches = async (req, res, next) => {
     let roomOccupied = false;
 
     submissionsData.forEach((submission) => {
-      const submissionDate = submission["VxRYImDnl8ikmYom7hfz"];
-      const submissionRoomName = submission["name"];
-      const personasAdults = Number(submission["bMeS4BNHinzH1R2RYbRm"] || 0);
+      const submissionDate = submission['VxRYImDnl8ikmYom7hfz'];
+      const personasAdults = Number(submission["aFT17gx5ceNFsSriw5Sd"] || 0);
       let total = personasAdults || 1;
 
-      // 🔹 Si coincide fecha y habitación exacta => ya está reservada
-      if (submissionDate === fecha && submissionRoomName === roomName) {
-        roomOccupied = true;
-      }
-
       // 🔹 Solo acumular personas si coinciden fecha y habitación
-      if (submissionDate === fecha && submissionRoomName === roomName) {
+      if (submissionDate === fecha) {
         totalAdditionalPeople += total;
       }
     });
-
-    // 🔸 Si la habitación ya está ocupada completamente
-    if (roomOccupied) {
-      const availablePlaces = numberAvailable - totalAdditionalPeople;
-
-      if (availablePlaces <= 0) {
-        return res.json({
-          msg: `La habitación "${roomName}" ya está reservada para la fecha ${fecha}`,
-          ava: false,
-          avaNumber: 0,
-          res: "Prueba de que pasa por aqui: La habitación roomName"
-        });
-      }
-    }
 
     const availablePlaces = numberAvailable - totalAdditionalPeople;
     const avaNumber = availablePlaces;

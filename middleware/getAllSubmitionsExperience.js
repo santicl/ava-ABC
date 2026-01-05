@@ -39,15 +39,13 @@ const getSubmissions = async (formId, limit = 100) => {
     return allSubmissions;
 };
 
-const getFormAllByIdSubmissions = async (req, res, next) => {
-    const formHabFamiliar = process.env.FORM_ID
-    const formTwins1 = process.env.FORM_SECOND_ID
-    const formTwinsPrueba = process.env.TWINS_1
+const getFormAllSubmissionsByExperience = async (req, res, next) => {
+    const formExperience = process.env.FORM_EXPERIENCE;
     //const formThreeId = process.env.FORM_THREE_ID; // Traditional
     const limit = 100;
     
 
-    if (!formHabFamiliar) {
+    if (!formExperience) {
         return res.status(400).json({ error: 'FORM_ID son requeridos en las variables de entorno' });
     }
 
@@ -55,17 +53,13 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
 
     try {
         // Obtener todos los submissions de ambos formularios
-        const [formTwins1Submissions, formHabFamiliarSubmissions, formPruebaSubmissions] = await Promise.all([
-            getSubmissions(formTwins1, limit),
-            getSubmissions(formHabFamiliar, limit),
-            getSubmissions(formTwinsPrueba, limit),
+        const [formExperienceSubmissions] = await Promise.all([
+            getSubmissions(formExperience, limit),
         ]);
 
         // Combinar todas las submissions
         req.body.submissions = [
-            ...formTwins1Submissions, 
-            ...formHabFamiliarSubmissions,
-            ...formPruebaSubmissions,
+            ...formExperienceSubmissions,
         ];
         console.log(req.body.submissions, "SUBMITIONS")
         next();
@@ -79,4 +73,4 @@ const getFormAllByIdSubmissions = async (req, res, next) => {
     }
 };
 
-module.exports = getFormAllByIdSubmissions;
+module.exports = getFormAllSubmissionsByExperience;

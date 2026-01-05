@@ -4,12 +4,13 @@ const validateDateMatches = require('../controllers/validateDateMatches');
 const getCustomFields = require('../middleware/getCustomField');
 const getCustomFieldsSecond = require('../middleware/getSecondCustom');
 const validateDateMatchesSecond = require('../controllers/validateDateSecond');
+const validateAvailabilityByDateAndHour = require('../controllers/validateDate');
 const router = express.Router();
 
 router.post('/', 
     getFormAllByIdSubmissions,
     getCustomFieldsSecond,
-    validateDateMatchesSecond
+    validateAvailabilityByDateAndHour
 );
 
 module.exports = router;
