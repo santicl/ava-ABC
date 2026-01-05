@@ -1,84 +1,60 @@
-const validateDateMatches = async (req, res, next) => {
-  const { fecha, submissions, numberPerson, placesAvailable, roomName } = req.body;
-
-  const numberAvailable = placesAvailable;
-  console.log(numberAvailable, "validateDATE");
+const validateDateMatches = async (req, res) => {
+  const { fecha, submissions = [], numberPerson, placesAvailable } = req.body;
 
   if (!fecha) {
     return res.status(400).json({ error: "La fecha es requerida" });
   }
 
-  if ((!submissions || submissions.length === 0) && numberAvailable > 0) {
-    return res.json({
-      msg: "Hay Cupos Suficientes",
-      ava: true,
-      avaNumber: numberAvailable,
-      res: "Prueba de que pasa por aqui"
-    });
+  if (!numberPerson || numberPerson <= 0) {
+    return res.status(400).json({ error: "Número de personas inválido" });
   }
 
-  if (numberAvailable === 0) {
+  // Capacidad total real
+  const totalCapacity = Number(placesAvailable) || 0;
+
+  if (totalCapacity <= 0) {
     return res.json({
       msg: "No hay Cupos Suficientes",
       ava: false,
-      avaNumber: numberAvailable,
-      res: "Prueba de que pasa por aqui: numberAvailable === 0"
+      avaNumber: 0
     });
   }
 
-  try {
-    const submissionsData = submissions || [];
-    console.log(submissionsData.length, "Cantidad de Registros");
+  // Personas ya reservadas en esa fecha
+  let totalReserved = 0;
 
-    let totalAdditionalPeople = 0;
-    let roomOccupied = false;
+  submissions.forEach(submission => {
+    const submissionDate = submission['VxRYImDnl8ikmYom7hfz'];
+    const adults = Number(submission["aFT17gx5ceNFsSriw5Sd"] || 0);
 
-    submissionsData.forEach((submission) => {
-      const submissionDate = submission['VxRYImDnl8ikmYom7hfz'];
-      const personasAdults = Number(submission["aFT17gx5ceNFsSriw5Sd"] || 0);
-      let total = personasAdults || 1;
-
-      // 🔹 Solo acumular personas si coinciden fecha y habitación
-      if (submissionDate === fecha) {
-        totalAdditionalPeople += total;
-      }
-    });
-
-    const availablePlaces = numberAvailable - totalAdditionalPeople;
-    const avaNumber = availablePlaces;
-
-    console.log("availablePlaces:", availablePlaces);
-
-    if (numberPerson > availablePlaces) {
-      return res.json({
-        msg: "No hay Cupos Suficientes",
-        ava: false,
-        avaNumber,
-        res: "Prueba de que pasa por aqui: numberPerson > availablePlaces"
-      });
+    if (submissionDate === fecha) {
+      totalReserved += adults;
     }
+  });
 
-    if (availablePlaces > 0) {
-      return res.json({
-        msg: "Hay Cupos Suficientes",
-        ava: true,
-        avaNumber,
-        res: "Prueba de que pasa por aqui: availablePlaces > 0"
-      });
-    }
+  const availablePlaces = totalCapacity - totalReserved;
 
+  if (availablePlaces <= 0) {
     return res.json({
-      msg: "No se pudo validar disponibilidad",
+      msg: "No hay Cupos Suficientes",
       ava: false,
-      avaNumber,
-    });
-  } catch (error) {
-    console.error("Error al validar las fechas:", error);
-    res.status(error.response?.status || 500).json({
-      error: "Error al validar las fechas",
-      details: error.response?.data,
+      avaNumber: 0
     });
   }
+
+  if (numberPerson > availablePlaces) {
+    return res.json({
+      msg: "No hay Cupos Suficientes",
+      ava: false,
+      avaNumber: availablePlaces
+    });
+  }
+
+  return res.json({
+    msg: "Hay Cupos Suficientes",
+    ava: true,
+    avaNumber: availablePlaces
+  });
 };
 
 module.exports = validateDateMatches;
