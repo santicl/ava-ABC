@@ -5,7 +5,16 @@ const cors = require('cors');
 const app = express();
 
 // Configuración de CORS más completa
-app.use(cors({}));
+/* 🌍 CORS ABIERTO */
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept'
+  ]
+}));
 
 // Middleware para permitir respuestas a preflight requests
 app.options('*', cors());
