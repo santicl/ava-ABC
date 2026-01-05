@@ -1,23 +1,25 @@
-# fly.toml app configuration file generated for ava-abc on 2026-01-05T02:19:37Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'ava-abc'
-primary_region = 'iad'
+app = "ava-abc"
+primary_region = "gru"
 
 [build]
+builder = "paketobuildpacks/builder:base"
 
-[http_service]
-  internal_port = 3000
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+[env]
+PORT = "3000"
 
-[[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
-  memory_mb = 1024
+[[services]]
+internal_port = 3_000
+protocol = "tcp"
+
+  [[services.ports]]
+  handlers = [ "http" ]
+  port = 80
+
+  [[services.ports]]
+  handlers = [ "tls", "http" ]
+  port = 443
+
+  [[services.tcp_checks]]
+  grace_period = "10s"
+  interval = "15s"
+  timeout = "2s"
