@@ -1,4 +1,4 @@
-app = "ghl-check-palmarito-hotel"
+app = "ghl-check-atolon"
 primary_region = "gru"
 
 # Configuración de construcción (elige entre Dockerfile o Buildpacks)
