@@ -4,20 +4,25 @@ const cors = require('cors');
 
 const app = express();
 
-// Configuración de CORS más completa
-/* 🌍 CORS ABIERTO */
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Accept'
-  ]
-}));
+/* 🚨 FORZAR CORS A NIVEL BAJO (ANTES DE TODO) */
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization, Accept'
+    );
 
-// Middleware para permitir respuestas a preflight requests
-app.options('*', cors());
+    // Responder inmediatamente el preflight
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+
+    next();
+});
+
+/* CORS (backup, pero ya no crítico) */
+app.use(cors({ origin: '*' }));
 
 // Middleware para parsear JSON
 app.use(express.json());
