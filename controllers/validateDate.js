@@ -13,30 +13,20 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     return res.status(400).json({ error: "customValues inválidos" });
   }
 
-  const getHourKeyFromSubmission = (hourString) => {
-  if (!hourString) return null;
-
-  // '8: 30 AM' → '8:30'
-  const clean = hourString
-    .toLowerCase()
-    .replace(/\s+/g, '')
-    .replace('am', '');
-
-  const [hour, minutes] = clean.split(':');
-
-  if (!hour || !minutes) return null;
-
-  return `disponibilidad-horario${hour}${minutes}`;
-};
-
-  // 🔹 4. Normalizar valor del submission (USA SOLO ESTE FORMATO)
   const normalizeSubmissionHour = (hourString) => {
     if (!hourString) return null;
 
-    return hourString
+    const clean = hourString
       .toLowerCase()
-      .replace(/\s+/g, '') // quita espacios
-      .replace('am', '');  // elimina AM
+      .replace(/\s+/g, '')
+      .replace('am', '');
+
+    let [hour, minutes] = clean.split(':');
+    if (!hour || !minutes) return null;
+
+    hour = String(Number(hour)); // 🔥 clave
+
+    return `${hour}:${minutes}`;
   };
 
   const HOURS = [
@@ -45,14 +35,13 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     { key: 'disponibilidad-horario11',  label: '11:00 AM' }
   ];
 
-    // 🔹 3. Mapa explícito hora lógica → key GHL
   const HOUR_KEY_MAP = {
     '8:30': 'disponibilidad-horario830',
     '10:00': 'disponibilidad-horario10',
     '11:00': 'disponibilidad-horario11'
   };
 
-  // 🔹 1. Crear mapa de capacidades desde customValues
+  // 1️⃣ Capacidades
   const capacityMap = {};
   customValues.forEach(cv => {
     if (cv.name && cv.value) {
@@ -60,70 +49,45 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     }
   });
 
-  // 🔹 2. Inicializar contador por horario (SIEMPRE por KEY)
+  // 2️⃣ Inicializar reservas
   const reservedByHour = {};
   HOURS.forEach(h => reservedByHour[h.key] = 0);
 
-  // 🔹 3. Crear mapa LABEL → KEY (normalizado)
-  const hourLabelToKeyMap = {};
-  HOURS.forEach(h => {
-    hourLabelToKeyMap[h.label] = h.key;
-  });
-
-  // 🔹 4. Acumular personas por horario SOLO para la fecha
+  // 3️⃣ Acumular reservas
   submissions.forEach(submission => {
     const submissionDate = submission['VxRYImDnl8ikmYom7hfz'];
-    const hourSelectedLabel = submission['JLIXjQ69qYsxnDpwKHcP'];
+    const hourLabel = submission['JLIXjQ69qYsxnDpwKHcP'];
     const persons = Number(submission['aFT17gx5ceNFsSriw5Sd'] || 1);
 
-    // Normalizar label (quita espacios raros)
-
-    const normalizedHour = normalizeSubmissionHour(hourSelectedLabel);
+    const normalizedHour = normalizeSubmissionHour(hourLabel);
     const hourKey = HOUR_KEY_MAP[normalizedHour];
 
-    if (
-      submissionDate === fecha &&
-      hourKey &&
-      reservedByHour[hourKey] !== undefined
-    ) {
+    if (submissionDate === fecha && hourKey) {
       reservedByHour[hourKey] += persons;
     }
   });
 
-  // 🔹 5. Buscar el primer horario disponible
-  for (const hour of HOURS) {
+  // 4️⃣ Horarios disponibles
+  const availableHours = HOURS.map(hour => {
     const capacity = capacityMap[hour.key] || 0;
     const reserved = reservedByHour[hour.key];
     const available = capacity - reserved;
 
-    if (available >= numberPerson) {
-      return res.json({
-        ava: true,
-        date: fecha,
-        horario: hour.label,
-        horarioKey: hour.key,
-        capacidad: capacity,
-        reservadas: reserved,
-        disponibles: available
-      });
-    }
-  }
+    return {
+      horario: hour.label,
+      horarioKey: hour.key,
+      capacidad: capacity,
+      reservadas: reserved,
+      disponibles: Math.max(available, 0),
+      disponible: available >= numberPerson
+    };
+  }).filter(h => h.disponible);
 
-  // 🔹 6. Si todos los horarios están llenos
   return res.json({
-    ava: false,
-    msg: "No hay cupos suficientes",
+    ava: availableHours.length > 0,
     date: fecha,
-    detalleHorarios: HOURS.map(h => {
-      const cap = capacityMap[h.key] || 0;
-      const resv = reservedByHour[h.key];
-      return {
-        horario: h.label,
-        capacidad: cap,
-        reservadas: resv,
-        disponibles: Math.max(cap - resv, 0)
-      };
-    })
+    numberPerson,
+    horariosDisponibles: availableHours
   });
 };
 
