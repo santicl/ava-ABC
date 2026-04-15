@@ -1,5 +1,5 @@
 const validateAvailabilityByDateAndHour = async (req, res) => {
-  const { fecha, submissions, customValues, numberPerson = 1 } = req.body;
+  const { fecha, submissions, customValues, numberPerson = 1, type } = req.body;
 
   if (!fecha) {
     return res.status(400).json({ error: "La fecha es requerida" });
@@ -24,7 +24,7 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     let [hour, minutes] = clean.split(':');
     if (!hour || !minutes) return null;
 
-    hour = String(Number(hour)); // 🔥 clave
+    hour = String(Number(hour));
 
     return `${hour}:${minutes}`;
   };
@@ -41,19 +41,54 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     '11:30': 'disponibilidad-horario11'
   };
 
-  // 1️⃣ Capacidades
-  const capacityMap = {};
+  // =========================
+  // 1️⃣ MAPAS
+  // =========================
+  const baseCapacityMap = {};
+  const dateCapacityMap = {};
+  const typeAvailabilityMap = {};
+
   customValues.forEach(cv => {
-    if (cv.name && cv.value) {
-      capacityMap[cv.name] = Number(cv.value);
+    if (!cv.name || cv.value === undefined) return;
+
+    const value = Number(cv.value);
+
+    console.log("Nombre de Custom Value:", cv.name, "Valor:", value);
+
+    // 🔥 VIP / Exclusive por fecha
+    const typeMatch = cv.name.match(/^disponible-(vip|exclusive)-(\d{4}-\d{2}-\d{2})$/);
+
+    if (typeMatch) {
+      const [, t, date] = typeMatch;
+
+      if (date === fecha) {
+        typeAvailabilityMap[t] = value;
+      }
+      return;
+    }
+
+    // 🔥 Horarios por fecha
+    const match = cv.name.match(/^(disponibilidad-horario\d+)-(\d{4}-\d{2}-\d{2})$/);
+
+    if (match) {
+      const [, baseKey, date] = match;
+
+      if (date === fecha && dateCapacityMap[baseKey] === undefined) {
+        dateCapacityMap[baseKey] = value;
+      }
+    } else {
+      baseCapacityMap[cv.name] = value;
     }
   });
 
-  // 2️⃣ Inicializar reservas
+  const typeLimit = type ? typeAvailabilityMap[type] : undefined;
+
+  // =========================
+  // 2️⃣ RESERVAS POR HORARIO
+  // =========================
   const reservedByHour = {};
   HOURS.forEach(h => reservedByHour[h.key] = 0);
 
-  // 3️⃣ Acumular reservas
   submissions.forEach(submission => {
     const submissionDate = submission['VxRYImDnl8ikmYom7hfz'];
     const hourLabel = submission['JLIXjQ69qYsxnDpwKHcP'];
@@ -67,11 +102,23 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
     }
   });
 
-  // 4️⃣ Horarios disponibles
+  // =========================
+  // 3️⃣ DISPONIBILIDAD FINAL
+  // =========================
   const availableHours = HOURS.map(hour => {
-    const capacity = capacityMap[hour.key] || 0;
+    const capacity =
+      dateCapacityMap[hour.key] ??
+      baseCapacityMap[hour.key] ??
+      0;
+
     const reserved = reservedByHour[hour.key];
-    const available = capacity - reserved;
+
+    let available = capacity - reserved;
+
+    // 🔥 aplicar límite por tipo (VIP / Exclusive)
+    if (typeLimit !== undefined) {
+      available = Math.min(available, typeLimit);
+    }
 
     return {
       horario: hour.label,
@@ -86,6 +133,7 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
   return res.json({
     ava: availableHours.length > 0,
     date: fecha,
+    type,
     numberPerson,
     horariosDisponibles: availableHours
   });
