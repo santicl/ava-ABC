@@ -30,15 +30,15 @@ const validateAvailabilityByDateAndHour = async (req, res) => {
   };
 
   const HOURS = [
-    { key: 'disponibilidad-horario830', label: '08:00 AM' },
+    { key: 'disponibilidad-horario830', label: '08:30 AM' },
     { key: 'disponibilidad-horario10',  label: '10:00 AM' },
-    { key: 'disponibilidad-horario11',  label: '11:00 AM' }
+    { key: 'disponibilidad-horario11',  label: '11:30 AM' }
   ];
 
   const HOUR_KEY_MAP = {
-    '8:00': 'disponibilidad-horario830',
+    '8:30': 'disponibilidad-horario830',
     '10:00': 'disponibilidad-horario10',
-    '11:00': 'disponibilidad-horario11'
+    '11:30': 'disponibilidad-horario11'
   };
 
   // =========================
